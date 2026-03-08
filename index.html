@@ -11,24 +11,95 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body { background-color: #f4f7f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { 
+      background-color: #f4f7f6; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    }
     
-    .navbar-custom { background-color: #198754; color: white; padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .navbar-custom h4 { margin: 0; font-weight: 700; }
+    .navbar-custom { 
+      background-color: #198754; 
+      color: white; 
+      padding: 15px 20px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+    }
+    
+    .navbar-custom h4 { 
+      margin: 0; 
+      font-weight: 700; 
+      font-size: 1.2rem;
+    }
+    
+    @media (min-width: 768px) {
+      .navbar-custom h4 { font-size: 1.5rem; }
+    }
+
+    /* Trava o crescimento infinito no PC e centraliza */
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
 
     .summary-card {
-      background: #fff; border-radius: 12px; padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #198754;
+      background: #fff; 
+      border-radius: 12px; 
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+      border-left: 5px solid #198754;
       height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .summary-card h6 { color: #6c757d; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
-    .summary-card h3 { color: #212529; font-weight: 700; margin: 0; }
+    
+    .summary-card h6 { 
+      color: #6c757d; 
+      font-weight: 600; 
+      font-size: 0.85rem; 
+      text-transform: uppercase; 
+      margin-bottom: 5px;
+    }
+    
+    .summary-card h3 { 
+      color: #212529; 
+      font-weight: 700; 
+      margin: 0; 
+      font-size: 1.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (min-width: 768px) {
+      .summary-card h3 { font-size: 1.8rem; }
+    }
 
     .chart-container {
-      background: #fff; border-radius: 12px; padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
+      background: #fff; 
+      border-radius: 12px; 
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+      height: 100%; 
+      display: flex; 
+      flex-direction: column;
     }
-    .chart-title { font-weight: 700; color: #495057; margin-bottom: 15px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
+    
+    .chart-title { 
+      font-weight: 700; 
+      color: #495057; 
+      margin-bottom: 15px; 
+      border-bottom: 2px solid #f0f2f5; 
+      padding-bottom: 10px; 
+      font-size: 1.1rem; 
+    }
+
+    /* Container flexível para o gráfico se adaptar perfeitamente */
+    .chart-wrapper {
+      position: relative;
+      flex-grow: 1;
+      min-height: 250px; 
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -39,13 +110,13 @@
     <h4>Dashboard Frota</h4>
   </div>
   <div>
-    <select id="filtroMes" class="form-select form-select-sm shadow-none" onchange="aplicarFiltros()">
+    <select id="filtroMes" class="form-select form-select-sm shadow-none font-weight-bold text-dark" onchange="aplicarFiltros()">
       <option value="todos">Todos os Períodos</option>
       </select>
   </div>
 </div>
 
-<div class="container-fluid px-4">
+<div class="dashboard-container">
   
   <div id="loadingInfo" class="text-center my-5 text-success">
     <div class="spinner-border" role="status"></div>
@@ -53,26 +124,27 @@
   </div>
 
   <div id="conteudoDashboard" style="display: none;">
+    
     <div class="row g-3 mb-4">
-      <div class="col-md-3 col-6">
+      <div class="col-12 col-sm-6 col-lg-3">
         <div class="summary-card">
           <h6>Total Gasto (R$)</h6>
-          <h3 id="cardTotalGasto">R$ 0,00</h3>
+          <h3 id="cardTotalGasto" class="text-success">R$ 0,00</h3>
         </div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-12 col-sm-6 col-lg-3">
         <div class="summary-card" style="border-left-color: #0dcaf0;">
           <h6>Litros Abastecidos</h6>
           <h3 id="cardTotalLitros">0 L</h3>
         </div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-12 col-sm-6 col-lg-3">
         <div class="summary-card" style="border-left-color: #ffc107;">
           <h6>KM Percorrido</h6>
           <h3 id="cardTotalKm">0 km</h3>
         </div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-12 col-sm-6 col-lg-3">
         <div class="summary-card" style="border-left-color: #dc3545;">
           <h6>Média Geral</h6>
           <h3 id="cardMediaGeral">0.0 km/L</h3>
@@ -84,13 +156,18 @@
       <div class="col-lg-8">
         <div class="chart-container">
           <h5 class="chart-title"><i class="bi bi-truck me-2"></i>Gasto por Veículo (R$)</h5>
-          <canvas id="chartVeiculos" height="100"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="chartVeiculos"></canvas>
+          </div>
         </div>
       </div>
+      
       <div class="col-lg-4">
         <div class="chart-container">
           <h5 class="chart-title"><i class="bi bi-fuel-pump me-2"></i>Gasto por Posto</h5>
-          <canvas id="chartPostos" height="220"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="chartPostos"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -100,7 +177,7 @@
         <div class="chart-container">
           <h5 class="chart-title"><i class="bi bi-people me-2"></i>Ranking por Motorista</h5>
           <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle mb-0">
               <thead class="table-light">
                 <tr>
                   <th>Motorista</th>
@@ -116,12 +193,13 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
   // 👇👇👇 COLE SUA NOVA URL AQUI 👇👇👇
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTwq0TShQSLk2q0JD7qqchEjETXRV5yjAgw5nC9clMdQrsYHrghUvWIbS9-nh6aCQz/exec';
+  const APPS_SCRIPT_URL = 'COLOQUE_AQUI_A_NOVA_URL_DO_GOOGLE_APPS_SCRIPT';
 
   let dadosCompletos = [];
   let graficoVeiculos, graficoPostos;
@@ -131,7 +209,6 @@
   });
 
   function carregarDados() {
-    // Note que adicionamos ?tipo=registros no final da URL
     fetch(APPS_SCRIPT_URL + "?tipo=registros")
       .then(response => response.json())
       .then(dados => {
@@ -153,18 +230,16 @@
     const mesesUnicos = new Set();
     
     dados.forEach(linha => {
-      // Data está no índice 0 no formato DD/MM/YYYY
       const dataString = linha[0]; 
       if(dataString) {
         const partes = dataString.split('/');
         if(partes.length === 3) {
-          const mesAno = `${partes[1]}/${partes[2]}`; // MM/YYYY
+          const mesAno = `${partes[1]}/${partes[2]}`;
           mesesUnicos.add(mesAno);
         }
       }
     });
 
-    // Ordena os meses e adiciona no select
     Array.from(mesesUnicos).sort().reverse().forEach(mes => {
       select.innerHTML += `<option value="${mes}">${mes}</option>`;
     });
@@ -192,9 +267,9 @@
     let totalGasto = 0, totalLitros = 0, totalKm = 0;
 
     dados.forEach(linha => {
-      totalLitros += parseFloat(linha[5]) || 0; // Índice 5: Litros
-      totalGasto += parseFloat(linha[6]) || 0;  // Índice 6: Valor
-      totalKm += parseFloat(linha[9]) || 0;     // Índice 9: KM Percorrido
+      totalLitros += parseFloat(linha[5]) || 0; 
+      totalGasto += parseFloat(linha[6]) || 0;  
+      totalKm += parseFloat(linha[9]) || 0;     
     });
 
     const mediaGeral = totalLitros > 0 ? (totalKm / totalLitros).toFixed(2) : 0;
@@ -205,7 +280,6 @@
     document.getElementById('cardMediaGeral').innerText = `${mediaGeral} km/L`;
   }
 
-  // ---- FUNÇÕES DE GRÁFICOS E AGRUPAMENTOS ----
   function agruparPorIndice(dados, indiceChave, indiceValor) {
     const mapa = {};
     dados.forEach(linha => {
@@ -219,9 +293,8 @@
   }
 
   function atualizarGraficoVeiculos(dados) {
-    const dadosAgrupados = agruparPorIndice(dados, 2, 6); // 2: Veículo, 6: Valor R$
+    const dadosAgrupados = agruparPorIndice(dados, 2, 6); 
     
-    // Ordenar do maior gasto para o menor
     const labels = Object.keys(dadosAgrupados).sort((a, b) => dadosAgrupados[b] - dadosAgrupados[a]);
     const valores = labels.map(label => dadosAgrupados[label]);
 
@@ -239,12 +312,16 @@
           borderRadius: 6
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, // <-- Essencial para a responsividade funcionar livremente
+        plugins: { legend: { display: false } } 
+      }
     });
   }
 
   function atualizarGraficoPostos(dados) {
-    const dadosAgrupados = agruparPorIndice(dados, 4, 6); // 4: Posto, 6: Valor R$
+    const dadosAgrupados = agruparPorIndice(dados, 4, 6); 
     const labels = Object.keys(dadosAgrupados);
     const valores = Object.values(dadosAgrupados);
 
@@ -261,7 +338,10 @@
           borderWidth: 1
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false // <-- Essencial para a responsividade funcionar livremente
+      }
     });
   }
 
@@ -269,9 +349,9 @@
     const mapaMotoristas = {};
     
     dados.forEach(linha => {
-      const motorista = linha[1]; // 1: Motorista
-      const litros = parseFloat(linha[5]) || 0; // 5: Litros
-      const valor = parseFloat(linha[6]) || 0;  // 6: Valor
+      const motorista = linha[1]; 
+      const litros = parseFloat(linha[5]) || 0; 
+      const valor = parseFloat(linha[6]) || 0;  
       
       if (motorista) {
         if (!mapaMotoristas[motorista]) {
@@ -286,17 +366,16 @@
     const tbody = document.getElementById('tabelaMotoristas');
     tbody.innerHTML = '';
 
-    // Ordenar por quem gastou mais
     const chavesOrdenadas = Object.keys(mapaMotoristas).sort((a, b) => mapaMotoristas[b].valor - mapaMotoristas[a].valor);
 
     chavesOrdenadas.forEach(moto => {
       const obj = mapaMotoristas[moto];
       tbody.innerHTML += `
         <tr>
-          <td class="fw-bold">${moto}</td>
+          <td class="fw-bold text-nowrap">${moto}</td>
           <td>${obj.qtd}</td>
-          <td>${obj.litros.toFixed(2)} L</td>
-          <td class="text-danger fw-bold">R$ ${obj.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td class="text-nowrap">${obj.litros.toFixed(2)} L</td>
+          <td class="text-danger fw-bold text-nowrap">R$ ${obj.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         </tr>
       `;
     });
