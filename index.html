@@ -33,11 +33,20 @@
       .navbar-custom h4 { font-size: 1.5rem; }
     }
 
-    /* Trava o crescimento infinito no PC e centraliza */
     .dashboard-container {
       max-width: 1400px;
       margin: 0 auto;
       padding: 0 15px;
+    }
+
+    /* Estilo da barra de filtros */
+    .filter-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+      border: 1px solid #e9ecef;
     }
 
     .summary-card {
@@ -93,7 +102,6 @@
       font-size: 1.1rem; 
     }
 
-    /* Container flexível para o gráfico se adaptar perfeitamente */
     .chart-wrapper {
       position: relative;
       flex-grow: 1;
@@ -104,16 +112,9 @@
 </head>
 <body>
 
-<div class="navbar-custom d-flex justify-content-between align-items-center mb-4">
-  <div class="d-flex align-items-center">
-    <i class="bi bi-bar-chart-fill fs-3 me-2"></i>
-    <h4>Dashboard Frota</h4>
-  </div>
-  <div>
-    <select id="filtroMes" class="form-select form-select-sm shadow-none font-weight-bold text-dark" onchange="aplicarFiltros()">
-      <option value="todos">Todos os Períodos</option>
-      </select>
-  </div>
+<div class="navbar-custom d-flex align-items-center mb-4">
+  <i class="bi bi-bar-chart-fill fs-3 me-2"></i>
+  <h4>Dashboard Frota</h4>
 </div>
 
 <div class="dashboard-container">
@@ -125,6 +126,35 @@
 
   <div id="conteudoDashboard" style="display: none;">
     
+    <div class="filter-card">
+      <h6 class="text-success fw-bold mb-3"><i class="bi bi-funnel-fill me-2"></i>Filtros de Busca</h6>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3 col-6">
+          <label class="form-label text-muted mb-1 small">Data Início</label>
+          <input type="date" id="dataInicio" class="form-control form-control-sm" onchange="aplicarFiltros()">
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="form-label text-muted mb-1 small">Data Fim</label>
+          <input type="date" id="dataFim" class="form-control form-control-sm" onchange="aplicarFiltros()">
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="form-label text-muted mb-1 small">Motorista</label>
+          <select id="filtroMotorista" class="form-select form-select-sm" onchange="aplicarFiltros()">
+            <option value="todos">Todos os Motoristas</option>
+            </select>
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="form-label text-muted mb-1 small">Veículo</label>
+          <select id="filtroVeiculo" class="form-select form-select-sm" onchange="aplicarFiltros()">
+            <option value="todos">Todos os Veículos</option>
+            </select>
+        </div>
+      </div>
+      <div class="mt-3 text-end d-md-block d-grid">
+        <button class="btn btn-sm btn-outline-secondary px-4" onclick="limparFiltros()"><i class="bi bi-eraser me-1"></i> Limpar Filtros</button>
+      </div>
+    </div>
+
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6 col-lg-3">
         <div class="summary-card">
@@ -213,7 +243,7 @@
       .then(response => response.json())
       .then(dados => {
         dadosCompletos = dados;
-        popularFiltroMeses(dados);
+        popularOpcoesFiltro(dados);
         aplicarFiltros();
         
         document.getElementById('loadingInfo').style.display = 'none';
@@ -225,42 +255,81 @@
       });
   }
 
-  function popularFiltroMeses(dados) {
-    const select = document.getElementById('filtroMes');
-    const mesesUnicos = new Set();
+  function popularOpcoesFiltro(dados) {
+    const selectMotorista = document.getElementById('filtroMotorista');
+    const selectVeiculo = document.getElementById('filtroVeiculo');
+    
+    const motoristas = new Set();
+    const veiculos = new Set();
     
     dados.forEach(linha => {
-      const dataString = linha[0]; 
-      if(dataString) {
-        const partes = dataString.split('/');
-        if(partes.length === 3) {
-          const mesAno = `${partes[1]}/${partes[2]}`;
-          mesesUnicos.add(mesAno);
-        }
-      }
+      if (linha[1]) motoristas.add(linha[1]); // Índice 1: Motorista
+      if (linha[2]) veiculos.add(linha[2]);   // Índice 2: Veículo
     });
 
-    Array.from(mesesUnicos).sort().reverse().forEach(mes => {
-      select.innerHTML += `<option value="${mes}">${mes}</option>`;
+    // Povoa os selects em ordem alfabética
+    Array.from(motoristas).sort().forEach(mot => {
+      selectMotorista.innerHTML += `<option value="${mot}">${mot}</option>`;
+    });
+
+    Array.from(veiculos).sort().forEach(vei => {
+      selectVeiculo.innerHTML += `<option value="${vei}">${vei}</option>`;
     });
   }
 
   function aplicarFiltros() {
-    const mesFiltro = document.getElementById('filtroMes').value;
+    const dataInicioInput = document.getElementById('dataInicio').value;
+    const dataFimInput = document.getElementById('dataFim').value;
+    const motoristaFiltro = document.getElementById('filtroMotorista').value;
+    const veiculoFiltro = document.getElementById('filtroVeiculo').value;
     
     let dadosFiltrados = dadosCompletos.filter(linha => {
-      if (mesFiltro === "todos") return true;
-      const dataString = linha[0];
-      if (!dataString) return false;
-      const partes = dataString.split('/');
-      const mesAno = `${partes[1]}/${partes[2]}`;
-      return mesAno === mesFiltro;
+      let passou = true;
+
+      // 1. Verifica Motorista
+      if (motoristaFiltro !== "todos" && linha[1] !== motoristaFiltro) {
+        passou = false;
+      }
+
+      // 2. Verifica Veículo
+      if (veiculoFiltro !== "todos" && linha[2] !== veiculoFiltro) {
+        passou = false;
+      }
+
+      // 3. Verifica Período (Datas)
+      if (linha[0] && (dataInicioInput || dataFimInput)) {
+        // A data da planilha vem como DD/MM/YYYY. Precisamos converter para comparar.
+        const [dia, mes, ano] = linha[0].split('/');
+        const dataLinha = new Date(ano, mes - 1, dia);
+
+        if (dataInicioInput) {
+          const [anoI, mesI, diaI] = dataInicioInput.split('-');
+          const dInicio = new Date(anoI, mesI - 1, diaI);
+          if (dataLinha < dInicio) passou = false;
+        }
+
+        if (dataFimInput) {
+          const [anoF, mesF, diaF] = dataFimInput.split('-');
+          const dFim = new Date(anoF, mesF - 1, diaF);
+          if (dataLinha > dFim) passou = false;
+        }
+      }
+
+      return passou;
     });
 
     atualizarCards(dadosFiltrados);
     atualizarGraficoVeiculos(dadosFiltrados);
     atualizarGraficoPostos(dadosFiltrados);
     atualizarTabelaMotoristas(dadosFiltrados);
+  }
+
+  function limparFiltros() {
+    document.getElementById('dataInicio').value = '';
+    document.getElementById('dataFim').value = '';
+    document.getElementById('filtroMotorista').value = 'todos';
+    document.getElementById('filtroVeiculo').value = 'todos';
+    aplicarFiltros();
   }
 
   function atualizarCards(dados) {
@@ -314,7 +383,7 @@
       },
       options: { 
         responsive: true, 
-        maintainAspectRatio: false, // <-- Essencial para a responsividade funcionar livremente
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } } 
       }
     });
@@ -340,7 +409,7 @@
       },
       options: { 
         responsive: true, 
-        maintainAspectRatio: false // <-- Essencial para a responsividade funcionar livremente
+        maintainAspectRatio: false 
       }
     });
   }
